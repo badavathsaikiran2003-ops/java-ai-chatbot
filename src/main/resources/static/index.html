@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Java AI Tutor</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #111827;
+            padding: 20px;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 25px;
+            color: #38bdf8;
+        }
+
+        .new-chat {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Main Chat Area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px;
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+        }
+
+        .header h2 {
+            font-size: 20px;
+        }
+
+        /* Messages */
+        .chat-area {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .user {
+            background: #2563eb;
+            margin-left: auto;
+        }
+
+        .bot {
+            background: #334155;
+            margin-right: auto;
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            padding: 20px;
+            background: #1e293b;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            outline: none;
+            border-radius: 8px;
+            background: #334155;
+            color: white;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .clear {
+            margin-top: 15px;
+            background: #475569;
+        }
+
+        @media(max-width: 650px) {
+            .sidebar {
+                display: none;
+            }
+
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <h2>Java AI Tutor</h2>
+
+        <button class="new-chat" onclick="clearChat()">
+            + New Chat
+        </button>
+
+        <button class="clear" onclick="clearChat()">
+            Clear Chat
+        </button>
+
+    </div>
+
+
+    <!-- Main Section -->
+    <div class="main">
+
+        <div class="header">
+            <h2>Java AI Assistant</h2>
+            <p>Ask anything about Java programming</p>
+        </div>
+
+
+        <!-- Chat Messages -->
+        <div class="chat-area" id="chatArea">
+
+            <div class="message bot">
+                Hello! Welcome to Java AI Tutor.
+                Ask me any Java programming question.
+            </div>
+
+        </div>
+
+
+        <!-- Input Section -->
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="message"
+                placeholder="Ask your Java question..."
+                onkeydown="handleEnter(event)"
+            >
+
+            <button id="sendButton" onclick="sendMessage()">
+                Send
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function addMessage(text, sender) {
+
+            let chatArea = document.getElementById("chatArea");
+
+            let messageDiv = document.createElement("div");
+
+            messageDiv.className = "message " + sender;
+
+            messageDiv.innerText = text;
+
+            chatArea.appendChild(messageDiv);
+
+            chatArea.scrollTop = chatArea.scrollHeight;
+
+        }
+
+
+        function sendMessage() {
+
+            let input = document.getElementById("message");
+
+            let message = input.value.trim();
+
+            if (message === "") {
+                return;
+            }
+
+            addMessage(message, "user");
+
+            input.value = "";
+
+            let sendButton = document.getElementById("sendButton");
+
+            sendButton.disabled = true;
+
+            addMessage("Thinking...", "bot");
+
+            let chatArea = document.getElementById("chatArea");
+
+            let thinkingMessage = chatArea.lastElementChild;
+
+            fetch("/chat?message=" + encodeURIComponent(message))
+
+                .then(response => {
+
+                    if (!response.ok) {
+                        throw new Error("API request failed");
+                    }
+
+                    return response.text();
+
+                })
+
+                .then(data => {
+
+                    thinkingMessage.innerText = data;
+
+                })
+
+                .catch(error => {
+
+                    thinkingMessage.innerText =
+                        "Sorry! Unable to get a response. Please try again.";
+
+                    console.log(error);
+
+                })
+
+                .finally(() => {
+
+                    sendButton.disabled = false;
+
+                    input.focus();
+
+                    chatArea.scrollTop = chatArea.scrollHeight;
+
+                });
+
+        }
+
+
+        function handleEnter(event) {
+
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+
+        }
+
+
+        function clearChat() {
+
+            let chatArea = document.getElementById("chatArea");
+
+            chatArea.innerHTML = "";
+
+            addMessage(
+                "Hello! Welcome to Java AI Tutor. Ask me any Java programming question.",
+                "bot"
+            );
+
+        }
+
+    </script>
+
+</body>
+</html>
